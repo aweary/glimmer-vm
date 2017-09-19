@@ -31,6 +31,7 @@ export class WriteOnlyConstants implements CompileTimeConstants {
   protected resolved: Opaque[] = [];
   protected floats: number[] = [];
   protected negatives: number[] = [];
+  private wellKnownEmptyArray: number;
 
   float(float: number) {
     let index = this.floats.indexOf(float);
@@ -68,6 +69,15 @@ export class WriteOnlyConstants implements CompileTimeConstants {
 
   array(values: number[]): number {
     let index = this.arrays.indexOf(values);
+    let { wellKnownEmptyArray } = this;
+
+    if (values.length === 0) {
+      if (wellKnownEmptyArray === undefined) {
+        return this.wellKnownEmptyArray = this.arrays.push(values) - 1;
+      } else {
+        return wellKnownEmptyArray;
+      }
+    }
 
     if (index > -1) {
       return index;
