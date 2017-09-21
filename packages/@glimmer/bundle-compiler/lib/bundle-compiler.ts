@@ -8,7 +8,8 @@ import {
   Recast,
   SymbolTable,
   VMHandle,
-  ComponentCapabilities
+  ComponentCapabilities,
+  Unique
 } from "@glimmer/interfaces";
 import {
   CompilableTemplate,
@@ -17,12 +18,14 @@ import {
   CompileTimeLookup,
   CompileOptions,
   ICompilableTemplate,
-  EagerOpcodeBuilder
+  EagerOpcodeBuilder,
+  SimpleOpcodeBuilder
 } from "@glimmer/opcode-compiler";
 import {
   WriteOnlyProgram,
   WriteOnlyConstants,
-  ConstantPool
+  ConstantPool,
+  SerializedHeap
 } from "@glimmer/program";
 
 import { Specifier } from "./specifiers";
@@ -128,6 +131,10 @@ export class BundleCompiler {
   }
 
   compile() {
+    let builder = new SimpleOpcodeBuilder();
+    builder.main();
+    let main = builder.commit(this.program.heap, 0);
+
     this.compiledBlocks.forEach((_block, specifier) => {
       this.compileSpecifier(specifier);
     });
@@ -135,7 +142,8 @@ export class BundleCompiler {
     let { heap, constants } = this.program;
 
     return {
-      heap: heap.capture(),
+      main: main as Unique<'Handle'>,
+      heap: heap.capture() as SerializedHeap,
       pool: constants.toPool()
     };
   }
